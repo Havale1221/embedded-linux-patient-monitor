@@ -1,220 +1,106 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[codz]
-*$py.class
 
-# C extensions
-*.so
+from flask import Flask, render_template_string
+from datetime import datetime
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+app = Flask(__name__)
 
-# PyInstaller
-#   Usually these files are written by a python script from a template
-#   before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+PAGE = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patient Monitor</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: #101827; color: white;
+  font-family: Arial, sans-serif; text-align: center;
+}
+header { padding: 14px; font-size: 24px; font-weight: bold; }
+.panels {
+  display: flex; flex-wrap: wrap; min-height: 85vh;
+}
+.panel {
+  flex: 1; min-width: 280px; padding: 24px 12px;
+}
+.oxygen { background: #08bfc9; }
+.pulse { background: linear-gradient(#ff7139, #f52243); }
+.gauge {
+  width: 230px; height: 230px; max-width: 85%;
+  border: 12px solid rgba(255,255,255,.8);
+  border-radius: 50%; margin: 22px auto;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  box-shadow: 0 0 10px #ffffff44;
+}
+.value { font-size: 55px; font-weight: bold; }
+.unit { font-size: 18px; }
+canvas { width: 95%; max-width: 460px; height: 130px; }
+footer { padding: 12px; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>Patient Health Monitoring</header>
+<div class="panels">
+  <section class="panel oxygen">
+    <h2>OXYGEN</h2>
+    <div class="gauge">
+      <div>SpO₂</div>
+      <div class="value">{{ spo2 }}<span class="unit">%</span></div>
+    </div>
+    <canvas id="oxygenChart"></canvas>
+  </section>
+  <section class="panel pulse">
+    <h2>PULSE</h2>
+    <div class="gauge">
+      <div>♡ BPM</div>
+      <div class="value">{{ pulse }}</div>
+    </div>
+    <canvas id="pulseChart"></canvas>
+  </section>
+</div>
+<footer>
+  Updated: {{ updated }} | Demonstration readings only — not for diagnosis.
+</footer>
+<script>
+function drawChart(id, values) {
+  const c = document.getElementById(id);
+  const ctx = c.getContext("2d");
+  c.width = c.clientWidth;
+  c.height = 130;
+  ctx.strokeStyle = "rgba(255,255,255,.35)";
+  ctx.lineWidth = 1;
+  for (let y = 20; y < 130; y += 30) {
+    ctx.beginPath(); ctx.moveTo(0,y);
+    ctx.lineTo(c.width,y); ctx.stroke();
+  }
+  ctx.strokeStyle = "white"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  values.forEach((v,i) => {
+    const x = i * c.width / (values.length - 1);
+    const y = 65 - (v - 50) * 1.1;
+    if (i === 0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+drawChart("oxygenChart",
+  [89,91,90,94,92,95,93,96,94,98]);
+drawChart("pulseChart",
+  [70,74,72,78,75,81,76,73,79,75]);
+</script>
+</body>
+</html>
+"""
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+@app.route("/")
+def home():
+    return render_template_string(
+        PAGE,
+        spo2=98,
+        pulse=75,
+        updated=datetime.now().strftime("%H:%M:%S")
+    )
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py.cover
-*.lcov
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-# Pipfile.lock
-
-# uv
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-# uv.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-# poetry.lock
-# poetry.toml
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
-#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
-# pdm.lock
-# pdm.toml
-.pdm-python
-.pdm-build/
-
-# pixi
-#   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
-# pixi.lock
-#   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
-#   in the .venv directory. It is recommended not to include this directory in version control.
-.pixi/*
-!.pixi/config.toml
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule*
-celerybeat.pid
-
-# Redis
-*.rdb
-*.aof
-*.pid
-
-# RabbitMQ
-mnesia/
-rabbitmq/
-rabbitmq-data/
-
-# ActiveMQ
-activemq-data/
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.envrc
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs/Zensical documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#   JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#   be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#   and can be added to the global gitignore or merged into this file.  For a more nuclear
-#   option (not recommended) you can uncomment the following to ignore the entire idea folder.
-# .idea/
-
-# Abstra
-#   Abstra is an AI-powered process automation framework.
-#   Ignore directories containing user credentials, local state, and settings.
-#   Learn more at https://abstra.io/docs
-.abstra/
-
-# Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore that
-#   can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, you
-#   could uncomment the following to ignore the entire vscode folder
-# .vscode/
-# Temporary file for partial code execution
-tempCodeRunnerFile.py
-
-# Ruff stuff:
-.ruff_cache/
-
-# PyPI configuration file
-.pypirc
-
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
-
-# Streamlit
-.streamlit/secrets.toml
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=False)
